@@ -17,7 +17,7 @@ namespace BizHawk.Client.EmuHawk
 	public partial class InputRoll : Control
 	{
 		private readonly IControlRenderer _renderer;
-		private readonly SortedSet<Cell> _selectedItems = new SortedSet<Cell>(new SortCell());
+		private readonly CellList _selectedItems = new CellList();
 
 		// scrollbar location(s) are calculated later (e.g. on resize)
 		private readonly VScrollBar _vBar = new VScrollBar { Visible = false };
@@ -274,7 +274,7 @@ namespace BizHawk.Client.EmuHawk
 
 					if (_selectedItems.Max(s => s.RowIndex) >= _rowCount)
 					{
-						_selectedItems.RemoveWhere(i => i.RowIndex >= _rowCount);
+						_selectedItems.RemoveAll(i => i.RowIndex >= _rowCount);
 					}
 
 					RecalculateScrollBars();
@@ -580,8 +580,8 @@ namespace BizHawk.Client.EmuHawk
 				else
 				{
 					IEnumerable<Cell> items = _selectedItems.Where(cell => cell.RowIndex == index);
-					_selectedItems.RemoveWhere(items.Contains);
-					_lastSelectedRow = _selectedItems.LastOrDefault()?.RowIndex;
+					_selectedItems.RemoveAll(items.Contains);
+					_lastSelectedRow = _selectedItems.LastRowIndex;
 				}
 			}
 		}
@@ -610,8 +610,8 @@ namespace BizHawk.Client.EmuHawk
 
 		public void TruncateSelection(int index)
 		{
-			_selectedItems.RemoveWhere(cell => cell.RowIndex > index);
-			_lastSelectedRow = _selectedItems.LastOrDefault()?.RowIndex;
+			_selectedItems.RemoveAll(cell => cell.RowIndex > index);
+			_lastSelectedRow = _selectedItems.LastRowIndex;
 		}
 
 		[Browsable(false)]
@@ -1487,7 +1487,7 @@ namespace BizHawk.Client.EmuHawk
 							SelectRow(origIndex, false);
 
 							// SelectRow assumed the max row should be selected, but in this edge case it isn't
-							_lastSelectedRow = _selectedItems.FirstOrDefault()?.RowIndex;
+							_lastSelectedRow = _selectedItems.FirstRowIndex;
 						}
 						else
 						{
@@ -1787,8 +1787,8 @@ namespace BizHawk.Client.EmuHawk
 				{
 					if (toggle && _selectedItems.Any(x => x.RowIndex.HasValue && x.RowIndex == cell.RowIndex))
 					{
-						_selectedItems.RemoveWhere(x => x.RowIndex.HasValue && x.RowIndex == cell.RowIndex);
-						_lastSelectedRow = _selectedItems.LastOrDefault()?.RowIndex;
+						_selectedItems.RemoveAll(x => x.RowIndex.HasValue && x.RowIndex == cell.RowIndex);
+						_lastSelectedRow = _selectedItems.LastRowIndex;
 					}
 					else
 					{
@@ -1808,12 +1808,10 @@ namespace BizHawk.Client.EmuHawk
 					_lastSelectedRow = null; // TODO: tracking this by cell is a lot more work
 					if (toggle && _selectedItems.Any(x => x.RowIndex.HasValue && x.RowIndex == cell.RowIndex))
 					{
-						var item = _selectedItems
-							.FirstOrDefault(x => x.Equals(cell));
-
-						if (item != null)
+						var item = _selectedItems.IndexOf(cell);
+						if (item != -1)
 						{
-							_selectedItems.Remove(item);
+							_selectedItems.RemoveAt(item);
 						}
 					}
 					else

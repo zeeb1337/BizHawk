@@ -1,11 +1,33 @@
-﻿using System.Collections.Generic;
+﻿using System;
+
+using BizHawk.Common;
 
 namespace BizHawk.Client.EmuHawk
 {
+	public sealed class CellList : SortedList<Cell>
+	{
+		public int? FirstRowIndex => Count == 0 ? null : this[0].RowIndex;
+
+		public int? LastRowIndex => Count == 0 ? null : this[Count - 1].RowIndex;
+
+		// restore Set semantics, I doubt this is necessary TBH --yoshi
+		public override void Add(Cell item)
+		{
+			var i = _list.BinarySearch(item);
+			if (i >= 0)
+			{
+				Console.WriteLine("Yoshi didn't think this print statement would ever get hit, please screencap this and send it to him.");
+				Console.WriteLine(item == null ? "`CellList.Add(null)`" : $"`CellList.Add(Cell {{ r = {item.RowIndex}, c = \"{item.Column?.Name}\" }})`");
+				return;
+			}
+			_list.Insert(~i, item);
+		}
+	}
+
 	/// <summary>
 	/// Represents a single cell of the <seealso cref="InputRoll"/>
 	/// </summary>
-	public class Cell
+	public class Cell : IComparable<Cell>
 	{
 		public RollColumn Column { get; internal set; }
 		public int? RowIndex { get; internal set; }
@@ -17,6 +39,34 @@ namespace BizHawk.Client.EmuHawk
 		{
 			Column = cell.Column;
 			RowIndex = cell.RowIndex;
+		}
+
+		public int CompareTo(Cell other)
+		{
+			if (other == null)
+			{
+				return 1;
+			}
+
+			if (this.RowIndex.HasValue)
+			{
+				if (other.RowIndex.HasValue)
+				{
+					int row = this.RowIndex.Value.CompareTo(other.RowIndex.Value);
+					return row == 0
+						? this.Column.Name.CompareTo(other.Column.Name)
+						: row;
+				}
+
+				return 1;
+			}
+
+			if (other.RowIndex.HasValue)
+			{
+				return -1;
+			}
+
+			return this.Column.Name.CompareTo(other.Column.Name);
 		}
 
 		public override bool Equals(object obj)
@@ -43,47 +93,6 @@ namespace BizHawk.Client.EmuHawk
 		public static bool operator !=(Cell a, Cell b)
 		{
 			return !(a == b);
-		}
-	}
-
-	internal class SortCell : IComparer<Cell>
-	{
-		int IComparer<Cell>.Compare(Cell c1, Cell c2)
-		{
-			if (c1 == null && c2 == null)
-			{
-				return 0;
-			}
-
-			if (c2 == null)
-			{
-				return 1;
-			}
-
-			if (c1 == null)
-			{
-				return -1;
-			}
-
-			if (c1.RowIndex.HasValue)
-			{
-				if (c2.RowIndex.HasValue)
-				{
-					int row = c1.RowIndex.Value.CompareTo(c2.RowIndex.Value);
-					return row == 0
-						? c1.Column.Name.CompareTo(c2.Column.Name)
-						: row;
-				}
-					
-				return 1;
-			}
-
-			if (c2.RowIndex.HasValue)
-			{
-				return -1;
-			}
-
-			return c1.Column.Name.CompareTo(c2.Column.Name);
 		}
 	}
 
