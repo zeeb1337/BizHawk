@@ -505,8 +505,7 @@ namespace BizHawk.Client.EmuHawk
 			if (_argParser.cmdRom != null)
 			{
 				// Commandline should always override auto-load
-				var romPath = _argParser.cmdRom.MakeAbsolute();
-				LoadRom(romPath, new LoadRomArgs(new OpenAdvanced_OpenRom(romPath)));
+				LoadRom(new LoadRomArgs(new OpenAdvanced_OpenRom(_argParser.cmdRom.MakeAbsolute())));
 				if (Game == null)
 				{
 					ShowMessageBox(owner: null, $"Failed to load {_argParser.cmdRom} specified on commandline");
@@ -1116,11 +1115,8 @@ namespace BizHawk.Client.EmuHawk
 				Master.RebootCore();
 				return true;
 			}
-			else
-			{
-				if (CurrentlyOpenRomArgs == null) return true;
-				return LoadRom(CurrentlyOpenRomArgs.OpenAdvanced.SimplePath, CurrentlyOpenRomArgs);
-			}
+			if (CurrentlyOpenRomArgs == null) return true;
+			return LoadRom(CurrentlyOpenRomArgs);
 		}
 
 		public void PauseEmulator()
@@ -2141,12 +2137,11 @@ namespace BizHawk.Client.EmuHawk
 			var ioa = OpenAdvancedSerializer.ParseWithLegacy(rom);
 
 			// if(ioa is this or that) - for more complex behaviour
-			string romPath = ioa.SimplePath;
 
-			if (!LoadRom(romPath, new LoadRomArgs(ioa), out var failureIsFromAskSave))
+			if (!LoadRom(new LoadRomArgs(ioa), out var failureIsFromAskSave))
 			{
 				if (failureIsFromAskSave) OSD.AddMessage("ROM loading cancelled; a tool had unsaved changes");
-				else Config.RecentRoms.HandleLoadError(this, romPath, rom);
+				else Config.RecentRoms.HandleLoadError(this, ioa.SimplePath, rom);
 			}
 		}
 
@@ -2365,7 +2360,7 @@ namespace BizHawk.Client.EmuHawk
 			var file = new FileInfo(ofd.FileName);
 			_lastOpenRomFilter = ofd.FilterIndex;
 
-			LoadRom(file.FullName, new LoadRomArgs(new OpenAdvanced_OpenRom(file.FullName)));
+			LoadRom(new LoadRomArgs(new OpenAdvanced_OpenRom(file.FullName)));
 		}
 
 		private void CoreSyncSettings(object sender, RomLoader.SettingsLoadArgs e)
@@ -3654,9 +3649,7 @@ namespace BizHawk.Client.EmuHawk
 		private LoadRomArgs _currentLoadRomArgs;
 		private bool _isLoadingRom;
 
-		public bool LoadRom(string path, LoadRomArgs args) => LoadRom(path, args, out _);
-
-		public bool LoadRom(string path, LoadRomArgs args, out bool failureIsFromAskSave)
+		private bool LoadRom(string path, LoadRomArgs args, out bool failureIsFromAskSave)
 		{
 			if (!LoadRomInternal(path, args, out failureIsFromAskSave))
 				return false;
@@ -3670,6 +3663,17 @@ namespace BizHawk.Client.EmuHawk
 
 			return true;
 		}
+
+		private bool LoadRom(string path, LoadRomArgs args) => LoadRom(path, args, out _);
+
+		private bool LoadRom(LoadRomArgs args, out bool failureIsFromAskSave)
+			=> LoadRom(args.OpenAdvanced.SimplePath, args, out failureIsFromAskSave);
+
+		private bool LoadRom(LoadRomArgs args) => LoadRom(args, out _);
+
+		void IMainFormForApi.LoadRom(LoadRomArgs args) => LoadRom(args, out _);
+
+		void IMainFormForTools.LoadRom(LoadRomArgs args) => LoadRom(args, out _);
 
 		// Still needs a good bit of refactoring
 		private bool LoadRomInternal(string path, LoadRomArgs args, out bool failureIsFromAskSave)

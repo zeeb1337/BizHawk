@@ -111,7 +111,7 @@ namespace BizHawk.Client.EmuHawk
 			DialogResult = DialogResult.OK;
 			Close();
 
-			MainForm.LoadRom(fileInfo.FullName, new LoadRomArgs(new OpenAdvanced_OpenRom(fileInfo.FullName)));
+			MainForm.LoadRom(new LoadRomArgs(new OpenAdvanced_OpenRom(fileInfo.FullName)));
 		}
 
 		private void AddButton_Click(object sender, EventArgs e)
