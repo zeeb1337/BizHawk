@@ -506,7 +506,7 @@ namespace BizHawk.Client.EmuHawk
 			{
 				// Commandline should always override auto-load
 				var romPath = _argParser.cmdRom.MakeAbsolute();
-				LoadRom(romPath, new LoadRomArgs { OpenAdvanced = new OpenAdvanced_OpenRom { Path = romPath } });
+				LoadRom(romPath, new LoadRomArgs(new OpenAdvanced_OpenRom(romPath)));
 				if (Game == null)
 				{
 					ShowMessageBox(owner: null, $"Failed to load {_argParser.cmdRom} specified on commandline");
@@ -2140,15 +2140,10 @@ namespace BizHawk.Client.EmuHawk
 		{
 			var ioa = OpenAdvancedSerializer.ParseWithLegacy(rom);
 
-			var args = new LoadRomArgs
-			{
-				OpenAdvanced = ioa
-			};
-
 			// if(ioa is this or that) - for more complex behaviour
 			string romPath = ioa.SimplePath;
 
-			if (!LoadRom(romPath, args, out var failureIsFromAskSave))
+			if (!LoadRom(romPath, new LoadRomArgs(ioa), out var failureIsFromAskSave))
 			{
 				if (failureIsFromAskSave) OSD.AddMessage("ROM loading cancelled; a tool had unsaved changes");
 				else Config.RecentRoms.HandleLoadError(this, romPath, rom);
@@ -2370,8 +2365,7 @@ namespace BizHawk.Client.EmuHawk
 			var file = new FileInfo(ofd.FileName);
 			_lastOpenRomFilter = ofd.FilterIndex;
 
-			var lra = new LoadRomArgs { OpenAdvanced = new OpenAdvanced_OpenRom { Path = file.FullName } };
-			LoadRom(file.FullName, lra);
+			LoadRom(file.FullName, new LoadRomArgs(new OpenAdvanced_OpenRom(file.FullName)));
 		}
 
 		private void CoreSyncSettings(object sender, RomLoader.SettingsLoadArgs e)
