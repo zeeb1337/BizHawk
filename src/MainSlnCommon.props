@@ -8,6 +8,7 @@
 		<MSBuildWarningsAsMessages>NU1702</MSBuildWarningsAsMessages>
 		<NoWarn>CS1573;CS1591</NoWarn>
 		<OutputPath>$(ProjectDir)../../output/dll</OutputPath>
+		<TargetName>$(MSBuildProjectName.Replace("Mono", ""))</TargetName>
 	</PropertyGroup>
 	<ItemGroup>
 		<AdditionalFiles Include="$(ProjectDir)../../.stylecop.json" />

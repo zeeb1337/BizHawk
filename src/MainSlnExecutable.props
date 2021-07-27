@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);EXE_PROJECT</DefineConstants>
 		<OutputPath>$(ProjectDir)../../output</OutputPath>
-		<TargetName>$(MSBuildProjectName.Substring($([MSBuild]::Add($(MSBuildProjectName.LastIndexOf('.')), 1))))</TargetName>
+		<TargetName>$(TargetName.Substring($([MSBuild]::Add($(MSBuildProjectName.LastIndexOf('.')), 1))))</TargetName>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 		<OutputType>Exe</OutputType>
