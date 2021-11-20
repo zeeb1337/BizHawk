@@ -1748,7 +1748,7 @@ namespace BizHawk.Client.EmuHawk
 		}
 
 		private void OpenGenericCoreConfig(string title)
-			=> GenericCoreConfig.DoDialog(this, title, isMovieActive: MovieSession.Movie.IsActive());
+			=> GenericCoreConfig.DoDialog(Emulator, this, title, isMovieActive: MovieSession.Movie.IsActive());
 
 		private void GenericCoreSettingsMenuItem_Click(object sender, EventArgs e)
 		{
