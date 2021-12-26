@@ -1612,7 +1612,6 @@ namespace BizHawk.Client.EmuHawk
 		private void SnesSubMenu_DropDownOpened(object sender, EventArgs e)
 		{
 			SNESControllerConfigurationMenuItem.Enabled = MovieSession.Movie.NotActive();
-			SnesGfxDebuggerMenuItem.Enabled = true;
 		}
 
 		private void SNESControllerConfigurationMenuItem_Click(object sender, EventArgs e)

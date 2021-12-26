@@ -13,7 +13,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 {
 	[PortedCore(CoreNames.Bsnes115, "bsnes team", "v115+", "https://bsnes.dev", isReleased: false)]
 	[ServiceNotApplicable(new[] { typeof(IDriveLight) })]
-	public unsafe partial class BsnesCore : IEmulator, IDebuggable, IVideoProvider, ISaveRam, IStatable, IInputPollable, IRegionable, ISettable<BsnesCore.SnesSettings, BsnesCore.SnesSyncSettings>
+	public unsafe partial class BsnesCore : IEmulator, IDebuggable, IVideoProvider, ISaveRam, IStatable, IInputPollable, IRegionable, ISettable<BsnesCore.SnesSettings, BsnesCore.SnesSyncSettings>, SNES.IBSNESForGfxDebugger
 	{
 		private BsnesApi.SNES_REGION _region;
 
@@ -66,6 +66,12 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			};
 
 			Api = new BsnesApi(CoreComm.CoreFileProvider.DllPath(), CoreComm, callbacks.AllDelegatesInMemoryOrder());
+
+			void OnScanlineHooksChanged()
+			{
+//				if (!_disposed) Api.QUERY_set_scanlineStart(ScanlineHookManager.HookCount == 0 ? null : _scanlineStartCb);
+			}
+			ScanlineHookManager = new MyScanlineHookManager(OnScanlineHooksChanged);
 
 			_controllers = new BsnesControllers(_syncSettings);
 
@@ -322,6 +328,29 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 
 				palette[color] = r >> 8 << 16 | g >> 8 <<  8 | b >> 8 << 0;
 			}
+		}
+
+		public SNES.SnesColors.ColorType CurrPalette { get; private set; } = SNES.SnesColors.ColorType.BizHawk;
+
+		public void SetPalette(string palette)
+		{
+			if (Enum.TryParse<SNES.SnesColors.ColorType>(palette, out var ct)) CurrPalette = ct;
+		}
+
+		public SNES.ISNESGraphicsDecoder CreateGraphicsDecoder()
+			=> new SNESGraphicsDecoder(Api);
+
+		public SNES.ScanlineHookManager ScanlineHookManager { get; }
+
+		public sealed class MyScanlineHookManager : SNES.ScanlineHookManager
+		{
+			private readonly Action _onHooksChanged;
+
+			public MyScanlineHookManager(Action onHooksChanged)
+				=> _onHooksChanged = onHooksChanged;
+
+			protected override void OnHooksChanged()
+				=> _onHooksChanged();
 		}
 
 		private void snes_video_refresh(ushort* data, int width, int height, int pitch)
