@@ -1347,12 +1347,12 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is NES nes)
 			{
-				using var form = new NESGraphicsConfig(this, Config, nes.GetSettings().Clone());
+				using var form = new NESGraphicsConfig(Config, this, this, nes.GetSettings().Clone());
 				form.ShowDialog(this);
 			}
 			else if (Emulator is SubNESHawk sub)
 			{
-				using var form = new NESGraphicsConfig(this, Config, sub.GetSettings().Clone());
+				using var form = new NESGraphicsConfig(Config, this, this, sub.GetSettings().Clone());
 				form.ShowDialog(this);
 			}
 			else if (Emulator is QuickNES quickNes)
@@ -1456,12 +1456,12 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is NES nes)
 			{
-				using var dlg = new NESSyncSettingsForm(this, nes.GetSyncSettings().Clone(), nes.HasMapperProperties);
+				using var dlg = new NESSyncSettingsForm(this, this, nes.GetSyncSettings().Clone(), nes.HasMapperProperties);
 				dlg.ShowDialog(this);
 			}
 			else if (Emulator is SubNESHawk sub)
 			{
-				using var dlg = new NESSyncSettingsForm(this, sub.GetSyncSettings().Clone(), sub.HasMapperProperties);
+				using var dlg = new NESSyncSettingsForm(this, this, sub.GetSyncSettings().Clone(), sub.HasMapperProperties);
 				dlg.ShowDialog(this);
 			}
 
@@ -1546,7 +1546,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is Gameboy gb)
 			{
-				GBPrefs.DoGBPrefsDialog(this, Config, Game, MovieSession, gb);
+				GBPrefs.DoGBPrefsDialog(Config, this, Game, this, MovieSession, gb);
 			}
 			else
 			{
@@ -1582,7 +1582,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is Octoshock psx)
 			{
-				if (PSXOptions.DoSettingsDialog(this, Config, psx).IsOk())
+				if (PSXOptions.DoSettingsDialog(Config, this, this, psx).IsOk())
 				{
 					FrameBufferResized();
 				}
@@ -1632,11 +1632,11 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is LibsnesCore libsnes)
 			{
-				SNESOptions.DoSettingsDialog(this, libsnes);
+				SNESOptions.DoSettingsDialog(this, this, libsnes);
 			}
 			if (Emulator is BsnesCore bsnes)
 			{
-				BSNESOptions.DoSettingsDialog(this, bsnes);
+				BSNESOptions.DoSettingsDialog(this, this, bsnes);
 			}
 		}
 
@@ -1743,7 +1743,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is GambatteLink gambatte)
 			{
-				GBLPrefs.DoGBLPrefsDialog(this, Config, Game, MovieSession, gambatte);
+				GBLPrefs.DoGBLPrefsDialog(Config, this, Game, this, MovieSession, gambatte);
 			}
 		}
 
@@ -1852,7 +1852,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is ZXSpectrum zxs)
 			{
-				using var form = new ZxSpectrumJoystickSettings(this, zxs.GetSyncSettings().Clone());
+				using var form = new ZxSpectrumJoystickSettings(this, this, zxs.GetSyncSettings().Clone());
 				form.ShowDialog();
 			}
 		}
