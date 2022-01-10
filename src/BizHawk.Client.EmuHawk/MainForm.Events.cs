@@ -963,7 +963,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private void ProfilesMenuItem_Click(object sender, EventArgs e)
 		{
-			using var form = new ProfileConfig(this, Emulator, Config);
+			using var form = new ProfileConfig(Config, this);
 			if (!form.ShowDialog().IsOk()) return;
 			AddOnScreenMessage("Profile settings saved");
 
@@ -1698,7 +1698,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private void N64PluginSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			using var form = new N64VideoPluginConfig(this, Config, Emulator);
+			using var form = new N64VideoPluginConfig(this);
 			if (form.ShowDialog().IsOk()
 				&& Emulator is not N64) // If it's loaded, the reboot required message will appear
 			{
@@ -2403,7 +2403,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			// We do not check if the user is actually setting a profile here.
 			// This is intentional.
-			using var profileForm = new ProfileConfig(this, Emulator, Config);
+			using var profileForm = new ProfileConfig(Config, this);
 			profileForm.ShowDialog();
 			Config.FirstBoot = false;
 			ProfileFirstBootLabel.Visible = false;
