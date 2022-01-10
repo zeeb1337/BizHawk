@@ -4005,7 +4005,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			// save settings object
 			var t = Emulator.GetType();
-			var settable = new SettingsAdapter(Emulator);
+			var settable = GetSettingsAdapterForLoadedCoreUntyped();
 
 			if (settable.HasSettings)
 			{
