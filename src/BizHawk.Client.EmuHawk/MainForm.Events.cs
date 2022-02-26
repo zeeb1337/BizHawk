@@ -14,6 +14,7 @@ using BizHawk.Client.EmuHawk.ToolExtensions;
 using BizHawk.Common;
 using BizHawk.Emulation.Common;
 using BizHawk.Emulation.Cores.Atari.A7800Hawk;
+using BizHawk.Emulation.Cores.Calculators.Emu83;
 using BizHawk.Emulation.Cores.Calculators.TI83;
 using BizHawk.Emulation.Cores.ColecoVision;
 using BizHawk.Emulation.Cores.Computers.AmstradCPC;
@@ -1345,19 +1346,19 @@ namespace BizHawk.Client.EmuHawk
 
 		private void NesGraphicSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is NES nes)
+			if (Emulator is NES)
 			{
-				using var form = new NESGraphicsConfig(Config, this, this, nes.GetSettings().Clone());
+				using var form = new NESGraphicsConfig(Config, this, GetSettingsAdapterForLoadedCore<NES>());
 				form.ShowDialog(this);
 			}
-			else if (Emulator is SubNESHawk sub)
+			else if (Emulator is SubNESHawk)
 			{
-				using var form = new NESGraphicsConfig(Config, this, this, sub.GetSettings().Clone());
+				using var form = new NESGraphicsConfig(Config, this, GetSettingsAdapterForLoadedCore<SubNESHawk>());
 				form.ShowDialog(this);
 			}
-			else if (Emulator is QuickNES quickNes)
+			else if (Emulator is QuickNES)
 			{
-				using var form = new QuickNesConfig(this, Config, quickNes.GetSettings().Clone());
+				using var form = new QuickNesConfig(Config, GetSettingsAdapterForLoadedCore<QuickNES>());
 				form.ShowDialog(this);
 			}
 		}
@@ -1371,12 +1372,12 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is NES nes && nes.IsVS)
 			{
-				using var form = new NesVsSettings(this, nes.GetSyncSettings().Clone());
+				using var form = new NesVsSettings(GetSettingsAdapterForLoadedCore<NES>());
 				this.ShowDialogWithTempMute(form);
 			}
 			else if (Emulator is SubNESHawk sub && sub.IsVs)
 			{
-				using var form = new NesVsSettings(this, sub.GetSyncSettings().Clone());
+				using var form = new NesVsSettings(GetSettingsAdapterForLoadedCore<SubNESHawk>());
 				this.ShowDialogWithTempMute(form);
 			}
 		}
@@ -1431,14 +1432,14 @@ namespace BizHawk.Client.EmuHawk
 
 		private void NesControllerSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is NES nes)
+			if (Emulator is NES)
 			{
-				using var form = new NesControllerSettings(this, nes.GetSyncSettings().Clone());
+				using var form = new NesControllerSettings(GetSettingsAdapterForLoadedCore<NES>());
 				form.ShowDialog();
 			}
-			else if (Emulator is SubNESHawk sub)
+			else if (Emulator is SubNESHawk)
 			{
-				using var form = new NesControllerSettings(this, sub.GetSyncSettings().Clone());
+				using var form = new NesControllerSettings(GetSettingsAdapterForLoadedCore<SubNESHawk>());
 				form.ShowDialog();
 			}
 			else if (Emulator is QuickNES)
@@ -1456,12 +1457,12 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is NES nes)
 			{
-				using var dlg = new NESSyncSettingsForm(this, this, nes.GetSyncSettings().Clone(), nes.HasMapperProperties);
+				using var dlg = new NESSyncSettingsForm(this, GetSettingsAdapterForLoadedCore<NES>(), nes.HasMapperProperties);
 				dlg.ShowDialog(this);
 			}
 			else if (Emulator is SubNESHawk sub)
 			{
-				using var dlg = new NESSyncSettingsForm(this, this, sub.GetSyncSettings().Clone(), sub.HasMapperProperties);
+				using var dlg = new NESSyncSettingsForm(this, GetSettingsAdapterForLoadedCore<SubNESHawk>(), sub.HasMapperProperties);
 				dlg.ShowDialog(this);
 			}
 
@@ -1510,11 +1511,15 @@ namespace BizHawk.Client.EmuHawk
 
 		private void Ti83PaletteMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is TI83Common ti83)
+			var settable = Emulator switch
 			{
-				using var form = new TI83PaletteConfig(this, ti83.GetSettings().Clone());
-				if (form.ShowDialog().IsOk()) AddOnScreenMessage("Palette settings saved");
-			}
+				Emu83 => GetSettingsAdapterForLoadedCore<Emu83>(),
+				TI83 => GetSettingsAdapterForLoadedCore<TI83>(),
+				_ => null
+			};
+			if (settable is null) return;
+			using TI83PaletteConfig form = new(settable);
+			if (form.ShowDialog().IsOk()) AddOnScreenMessage("Palette settings saved");
 		}
 
 		private void A7800SubMenu_DropDownOpened(object sender, EventArgs e)
@@ -1526,18 +1531,18 @@ namespace BizHawk.Client.EmuHawk
 
 		private void A7800ControllerSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is A7800Hawk atari7800Hawk)
+			if (Emulator is A7800Hawk)
 			{
-				using var form = new A7800ControllerSettings(this, atari7800Hawk.GetSyncSettings().Clone());
+				using var form = new A7800ControllerSettings(GetSettingsAdapterForLoadedCore<A7800Hawk>());
 				form.ShowDialog();
 			}
 		}
 
 		private void A7800FilterSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is A7800Hawk atari7800Hawk)
+			if (Emulator is A7800Hawk)
 			{
-				using var form = new A7800FilterSettings(this, atari7800Hawk.GetSyncSettings().Clone());
+				using var form = new A7800FilterSettings(GetSettingsAdapterForLoadedCore<A7800Hawk>());
 				form.ShowDialog();
 			}
 		}
@@ -1546,7 +1551,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is Gameboy gb)
 			{
-				GBPrefs.DoGBPrefsDialog(Config, this, Game, this, MovieSession, gb);
+				GBPrefs.DoGBPrefsDialog(Config, this, Game, MovieSession, GetSettingsAdapterForLoadedCore<Gameboy>(), gb);
 			}
 			else
 			{
@@ -1571,9 +1576,9 @@ namespace BizHawk.Client.EmuHawk
 
 		private void PsxControllerSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is Octoshock psx)
+			if (Emulator is Octoshock)
 			{
-				using var form = new PSXControllerConfig(this, psx.GetSyncSettings().Clone());
+				using var form = new PSXControllerConfig(GetSettingsAdapterForLoadedCore<Octoshock>());
 				form.ShowDialog();
 			}
 		}
@@ -1582,7 +1587,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is Octoshock psx)
 			{
-				if (PSXOptions.DoSettingsDialog(Config, this, this, psx).IsOk())
+				if (PSXOptions.DoSettingsDialog(Config, this, GetSettingsAdapterForLoadedCore<Octoshock>(), psx).IsOk())
 				{
 					FrameBufferResized();
 				}
@@ -1611,14 +1616,14 @@ namespace BizHawk.Client.EmuHawk
 
 		private void SNESControllerConfigurationMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is LibsnesCore bsnes)
+			if (Emulator is LibsnesCore)
 			{
-				using var form = new SNESControllerSettings(this, bsnes.GetSyncSettings().Clone());
+				using var form = new SNESControllerSettings(GetSettingsAdapterForLoadedCore<LibsnesCore>());
 				form.ShowDialog();
 			}
-			else if (Emulator is BsnesCore bsnesCore)
+			else if (Emulator is BsnesCore)
 			{
-				using var form = new BSNESControllerSettings(this, bsnesCore.GetSyncSettings().Clone());
+				using var form = new BSNESControllerSettings(GetSettingsAdapterForLoadedCore<BsnesCore>());
 				form.ShowDialog();
 			}
 		}
@@ -1632,11 +1637,11 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is LibsnesCore libsnes)
 			{
-				SNESOptions.DoSettingsDialog(this, this, libsnes);
+				SNESOptions.DoSettingsDialog(this, GetSettingsAdapterForLoadedCore<LibsnesCore>(), libsnes);
 			}
 			if (Emulator is BsnesCore bsnes)
 			{
-				BSNESOptions.DoSettingsDialog(this, this, bsnes);
+				BSNESOptions.DoSettingsDialog(this, GetSettingsAdapterForLoadedCore<BsnesCore>(), bsnes);
 			}
 		}
 
@@ -1673,9 +1678,9 @@ namespace BizHawk.Client.EmuHawk
 
 		private void ColecoControllerSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is ColecoVision coleco)
+			if (Emulator is ColecoVision)
 			{
-				using var form = new ColecoControllerSettings(this, coleco.GetSyncSettings().Clone());
+				using var form = new ColecoControllerSettings(GetSettingsAdapterForLoadedCore<ColecoVision>());
 				form.ShowDialog();
 			}
 		}
@@ -1698,7 +1703,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private void N64PluginSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			using var form = new N64VideoPluginConfig(this);
+			using var form = new N64VideoPluginConfig(GetSettingsAdapterFor<N64>());
 			if (form.ShowDialog().IsOk()
 				&& Emulator is not N64) // If it's loaded, the reboot required message will appear
 			{
@@ -1708,9 +1713,9 @@ namespace BizHawk.Client.EmuHawk
 
 		private void N64ControllerSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is N64 n64)
+			if (Emulator is N64)
 			{
-				using var form = new N64ControllersSetup(this, n64.GetSyncSettings().Clone());
+				using var form = new N64ControllersSetup(GetSettingsAdapterForLoadedCore<N64>());
 				form.ShowDialog();
 			}
 		}
@@ -1743,7 +1748,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (Emulator is GambatteLink gambatte)
 			{
-				GBLPrefs.DoGBLPrefsDialog(Config, this, Game, this, MovieSession, gambatte);
+				GBLPrefs.DoGBLPrefsDialog(Config, this, Game, MovieSession, GetSettingsAdapterForLoadedCore<GambatteLink>(), gambatte);
 			}
 		}
 
@@ -1841,45 +1846,45 @@ namespace BizHawk.Client.EmuHawk
 
 		private void IntVControllerSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is Intellivision intv)
+			if (Emulator is Intellivision)
 			{
-				using var form = new IntvControllerSettings(this, intv.GetSyncSettings().Clone());
+				using var form = new IntvControllerSettings(GetSettingsAdapterForLoadedCore<Intellivision>());
 				form.ShowDialog();
 			}
 		}
 
 		private void ZXSpectrumControllerConfigurationMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is ZXSpectrum zxs)
+			if (Emulator is ZXSpectrum)
 			{
-				using var form = new ZxSpectrumJoystickSettings(this, this, zxs.GetSyncSettings().Clone());
+				using var form = new ZxSpectrumJoystickSettings(this, GetSettingsAdapterForLoadedCore<ZXSpectrum>());
 				form.ShowDialog();
 			}
 		}
 
 		private void ZXSpectrumCoreEmulationSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is ZXSpectrum speccy)
+			if (Emulator is ZXSpectrum)
 			{
-				using var form = new ZxSpectrumCoreEmulationSettings(this, speccy.GetSyncSettings().Clone());
+				using var form = new ZxSpectrumCoreEmulationSettings(GetSettingsAdapterForLoadedCore<ZXSpectrum>());
 				form.ShowDialog();
 			}
 		}
 
 		private void ZXSpectrumNonSyncSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is ZXSpectrum speccy)
+			if (Emulator is ZXSpectrum)
 			{
-				using var form = new ZxSpectrumNonSyncSettings(this, speccy.GetSettings().Clone());
+				using var form = new ZxSpectrumNonSyncSettings(GetSettingsAdapterForLoadedCore<ZXSpectrum>());
 				form.ShowDialog();
 			}
 		}
 
 		private void ZXSpectrumAudioSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is ZXSpectrum speccy)
+			if (Emulator is ZXSpectrum)
 			{
-				using var form = new ZxSpectrumAudioSettings(this, speccy.GetSettings().Clone());
+				using var form = new ZxSpectrumAudioSettings(GetSettingsAdapterForLoadedCore<ZXSpectrum>());
 				form.ShowDialog();
 			}
 		}
@@ -1997,18 +2002,18 @@ namespace BizHawk.Client.EmuHawk
 
 		private void AmstradCpcCoreEmulationSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is AmstradCPC cpc)
+			if (Emulator is AmstradCPC)
 			{
-				using var form = new AmstradCpcCoreEmulationSettings(this, cpc.GetSyncSettings().Clone());
+				using var form = new AmstradCpcCoreEmulationSettings(GetSettingsAdapterForLoadedCore<AmstradCPC>());
 				form.ShowDialog();
 			}
 		}
 
 		private void AmstradCpcAudioSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is AmstradCPC cpc)
+			if (Emulator is AmstradCPC)
 			{
-				using var form = new AmstradCpcAudioSettings(this, cpc.GetSettings().Clone());
+				using var form = new AmstradCpcAudioSettings(GetSettingsAdapterForLoadedCore<AmstradCPC>());
 				form.ShowDialog();
 			}
 		}
@@ -2101,9 +2106,9 @@ namespace BizHawk.Client.EmuHawk
 
 		private void AmstradCpcNonSyncSettingsMenuItem_Click(object sender, EventArgs e)
 		{
-			if (Emulator is AmstradCPC cpc)
+			if (Emulator is AmstradCPC)
 			{
-				using var form = new AmstradCpcNonSyncSettings(this, cpc.GetSettings().Clone());
+				using var form = new AmstradCpcNonSyncSettings(GetSettingsAdapterForLoadedCore<AmstradCPC>());
 				form.ShowDialog();
 			}
 
